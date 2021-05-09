@@ -91,7 +91,6 @@ module	wbp2classic #(
 
 	// returned
 	// {{{
-	initial	returned = 0;
 	always @(posedge i_clk)
 	if (i_reset)
 		returned <= 0;
@@ -109,8 +108,6 @@ module	wbp2classic #(
 
 	// o_sack, o_serr
 	// {{{
-	initial	o_sack = 0;
-	initial	o_serr = 0;
 	always @(posedge i_clk)
 	if (i_reset)
 	begin
@@ -150,7 +147,6 @@ module	wbp2classic #(
 	reg	f_ongoing;
 	reg	[F_LGDEPTH-1:0]	f_nreqs, f_nacks, f_outstanding;
 
-	initial	f_past_valid = 0;
 	always @(posedge i_clk)
 		f_past_valid = 1;
 

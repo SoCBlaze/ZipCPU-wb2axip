@@ -123,7 +123,6 @@ module skidbuffer #(
 
 		// r_valid
 		// {{{
-		initial if (OPT_INITIAL) r_valid = 0;
 		always @(posedge i_clk)
 		if (i_reset)
 			r_valid <= 0;
@@ -136,7 +135,6 @@ module skidbuffer #(
 
 		// r_data
 		// {{{
-		initial if (OPT_INITIAL) r_data = 0;
 		always @(posedge i_clk)
 		if (OPT_LOWPOWER && i_reset)
 			r_data <= 0;
@@ -181,7 +179,6 @@ module skidbuffer #(
 			// {{{
 			// o_valid
 			// {{{
-			initial if (OPT_INITIAL) o_valid = 0;
 			always @(posedge i_clk)
 			if (i_reset)
 				o_valid <= 0;
@@ -191,7 +188,6 @@ module skidbuffer #(
 
 			// o_data
 			// {{{
-			initial if (OPT_INITIAL) o_data = 0;
 			always @(posedge i_clk)
 			if (OPT_LOWPOWER && i_reset)
 				o_data <= 0;
@@ -229,7 +225,6 @@ module skidbuffer #(
 
 	reg	f_past_valid;
 
-	initial	f_past_valid = 0;
 	always @(posedge i_clk)
 		f_past_valid <= 1;
 
@@ -393,7 +388,6 @@ module skidbuffer #(
 	begin
 		reg	f_changed_data;
 
-		initial	f_changed_data = 0;
 		always @(posedge i_clk)
 		if (i_reset)
 			f_changed_data <= 1;

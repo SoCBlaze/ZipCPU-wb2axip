@@ -61,7 +61,7 @@
 module	wbarbiter #(
 		// {{{
 		parameter		DW=32, AW=32,
-		parameter		SCHEME="ALTERNATING",
+		parameter		SCHEME="PRIORITY",
 		parameter [0:0]		OPT_ZERO_ON_IDLE = 1'b0,
 		parameter [31:0]	F_MAX_STALL = 3,
 		parameter [31:0]	F_MAX_ACK_DELAY = 3,
@@ -116,13 +116,14 @@ module	wbarbiter #(
 	reg	r_a_owner;
 
 	assign o_cyc = (r_a_owner) ? i_a_cyc : i_b_cyc;
-	initial	r_a_owner = 1'b1;
 
 	generate if (SCHEME == "PRIORITY")
 	begin : PRI
 
 		always @(posedge i_clk)
-			if (!i_b_cyc)
+			if (i_reset)
+				r_a_owner <= 1'b1;
+			else if (!i_b_cyc)
 				r_a_owner <= 1'b1;
 			// Allow B to set its CYC line w/o activating this
 			// interface
@@ -133,15 +134,18 @@ module	wbarbiter #(
 	begin : ALT
 
 		reg	last_owner;
-		initial	last_owner = 1'b0;
 		always @(posedge i_clk)
-			if ((i_a_cyc)&&(r_a_owner))
+			if (i_reset)
+				last_owner <= 1'b0;
+			else if ((i_a_cyc)&&(r_a_owner))
 				last_owner <= 1'b1;
 			else if ((i_b_cyc)&&(!r_a_owner))
 				last_owner <= 1'b0;
 
 		always @(posedge i_clk)
-			if ((!i_a_cyc)&&(!i_b_cyc))
+			if (i_reset)
+				r_a_owner <= 1'b1;
+			else if ((!i_a_cyc)&&(!i_b_cyc))
 				r_a_owner <= !last_owner;
 			else if ((r_a_owner)&&(!i_a_cyc))
 			begin
@@ -160,7 +164,9 @@ module	wbarbiter #(
 	end else // if (SCHEME == "LAST")
 	begin : LST
 		always @(posedge i_clk)
-			if ((!i_a_cyc)&&(i_b_stb))
+			if (i_reset)
+				r_a_owner <= 1'b1;
+			else if ((!i_a_cyc)&&(i_b_stb))
 				r_a_owner <= 1'b0;
 			else if ((!i_b_cyc)&&(i_a_stb))
 				r_a_owner <= 1'b1;
@@ -241,7 +247,6 @@ module	wbarbiter #(
 `endif
 
 	reg	f_past_valid;
-	initial	f_past_valid = 1'b0;
 	always @(posedge i_clk)
 		f_past_valid <= 1'b1;
 
@@ -326,14 +331,12 @@ module	wbarbiter #(
 
 	reg	f_prior_a_ack, f_prior_b_ack;
 
-	initial	f_prior_a_ack = 1'b0;
 	always @(posedge i_clk)
 	if ((i_reset)||(o_a_err)||(o_b_err))
 		f_prior_a_ack = 1'b0;
 	else if ((o_cyc)&&(o_a_ack))
 		f_prior_a_ack <= 1'b1;
 
-	initial	f_prior_b_ack = 1'b0;
 	always @(posedge i_clk)
 	if ((i_reset)||(o_a_err)||(o_b_err))
 		f_prior_b_ack = 1'b0;

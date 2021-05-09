@@ -125,8 +125,6 @@ module	axilwr2wbsp #(
 
 	// o_wb_cyc, o_wb_stb
 	// {{{
-	initial	o_wb_cyc = 1'b0;
-	initial	o_wb_stb = 1'b0;
 	always @(posedge i_clk)
 	if ((w_reset)||((o_wb_cyc)&&(i_wb_err))||(err_state))
 		o_wb_stb <= 1'b0;
@@ -162,27 +160,27 @@ module	axilwr2wbsp #(
 
 	// r_awvalid, r_addr
 	// {{{
-	initial	r_awvalid = 1'b0;
 	always @(posedge i_clk)
 	begin
-		if ((i_axi_awvalid)&&(o_axi_awready))
+		if (w_reset)
+			r_awvalid <= 1'b0;
+		else if ((i_axi_awvalid)&&(o_axi_awready))
 		begin
 			r_addr <= i_axi_awaddr[AW+1:AXI_LSBS];
 			r_awvalid <= (!axi_write_accepted);
 		end else if (axi_write_accepted)
 			r_awvalid <= 1'b0;
 
-		if (w_reset)
-			r_awvalid <= 1'b0;
 	end
 	// }}}
 
 	// r_wvalid
 	// {{{
-	initial	r_wvalid = 1'b0;
 	always @(posedge i_clk)
 	begin
-		if ((i_axi_wvalid)&&(o_axi_wready))
+		if (w_reset)
+			r_wvalid <= 1'b0;
+		else if ((i_axi_wvalid)&&(o_axi_wready))
 		begin
 			r_data <= i_axi_wdata;
 			r_sel  <= i_axi_wstrb;
@@ -190,14 +188,11 @@ module	axilwr2wbsp #(
 		end else if (axi_write_accepted)
 			r_wvalid <= 1'b0;
 
-		if (w_reset)
-			r_wvalid <= 1'b0;
 	end
 	// }}}
 
 	// o_axi_awready
 	// {{{
-	initial	o_axi_awready = 1'b1;
 	always @(posedge i_clk)
 	if (w_reset)
 		o_axi_awready <= 1'b1;
@@ -232,7 +227,6 @@ module	axilwr2wbsp #(
 
 	// o_axi_wready
 	// {{{
-	initial	o_axi_wready = 1'b1;
 	always @(posedge i_clk)
 	if (w_reset)
 		o_axi_wready <= 1'b1;
@@ -267,8 +261,6 @@ module	axilwr2wbsp #(
 
 	// wb_pending, wb_outstanding
 	// {{{
-	initial	wb_pending     = 0;
-	initial	wb_outstanding = 0;
 	always @(posedge i_clk)
 	if ((w_reset)||(!o_wb_cyc)||(i_wb_err)||(err_state))
 	begin
@@ -292,8 +284,6 @@ module	axilwr2wbsp #(
 
 	// fifo_full, fifo_empty
 	// {{{
-	initial	fifo_full  = 1'b0;
-	initial	fifo_empty = 1'b1;
 	always @(posedge i_clk)
 	if (w_reset)
 	begin
@@ -316,7 +306,6 @@ module	axilwr2wbsp #(
 
 	// r_first
 	// {{{
-	initial	r_first = 0;
 	always @(posedge i_clk)
 	if (w_reset)
 		r_first <= 0;
@@ -326,7 +315,6 @@ module	axilwr2wbsp #(
 
 	// r_mid
 	// {{{
-	initial	r_mid = 0;
 	always @(posedge i_clk)
 	if (w_reset)
 		r_mid <= 0;
@@ -338,7 +326,6 @@ module	axilwr2wbsp #(
 
 	// r_last
 	// {{{
-	initial	r_last = 0;
 	always @(posedge i_clk)
 	if (w_reset)
 		r_last <= 0;
@@ -355,7 +342,6 @@ module	axilwr2wbsp #(
 
 	// o_axi_bresp
 	// {{{
-	initial	o_axi_bresp = 2'b00;
 	always @(posedge i_clk)
 	if (w_reset)
 		o_axi_bresp <= 0;
@@ -382,7 +368,6 @@ module	axilwr2wbsp #(
 
 	// err_state
 	// {{{
-	initial err_state  = 0;
 	always @(posedge i_clk)
 	if (w_reset)
 		err_state <= 0;
@@ -394,7 +379,6 @@ module	axilwr2wbsp #(
 
 	// o_axi_bvalid
 	// {{{
-	initial	o_axi_bvalid = 1'b0;
 	always @(posedge i_clk)
 	if (w_reset)
 		o_axi_bvalid <= 0;
@@ -438,7 +422,6 @@ module	axilwr2wbsp #(
 				f_first_minus_err;
 	wire	[LGFIFO:0]	f_fifo_fill;
 
-	initial f_past_valid = 1'b0;
 	always @(posedge i_clk)
 		f_past_valid <= 1'b1;
 

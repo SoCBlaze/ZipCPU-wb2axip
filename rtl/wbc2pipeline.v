@@ -74,7 +74,6 @@ module	wbc2pipeline #(
 
 	// last_stb
 	// {{{
-	initial	last_stb = 0;
 	always @(posedge i_clk)
 	if (i_reset || !i_sstb || o_sack || o_serr)
 		last_stb <= 0;
@@ -97,8 +96,6 @@ module	wbc2pipeline #(
 
 	// o_sack, o_serr
 	// {{{
-	initial	o_sack = 0;
-	initial	o_serr = 0;
 	always @(posedge i_clk)
 	if (i_reset || !i_sstb || o_sack || o_serr)
 	begin

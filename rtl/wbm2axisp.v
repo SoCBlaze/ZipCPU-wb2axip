@@ -143,6 +143,7 @@ module wbm2axisp #(
 
 	// The various address widths must be properly related.  We'll insist
 	// upon that relationship here.
+	// synopsys translate_off
 	initial begin
 		// This design can't (currently) handle WB widths wider than
 		// the AXI width it is driving.  It can only handle widths
@@ -165,6 +166,7 @@ module wbm2axisp #(
 			&&(C_AXI_DATA_WIDTH      != DW))
 			$stop;
 	end
+	// synopsys translate_on
 	// }}}
 
 	////////////////////////////////////////////////////////////////////////
@@ -214,16 +216,13 @@ module wbm2axisp #(
 	////////////////////////////////////////////////////////////////////////
 	//
 	//
-	initial	direction = 0;
 	always @(posedge i_clk)
-	if (empty)
+	if (i_reset)
+		direction <= 0;
+	else if (empty)
 		direction <= m_we;
 
-	initial	npending = 0;
-	initial	empty    = 1;
-	initial	full     = 0;
-	initial	nearfull = 0;
-	always @(posedge i_clk)
+	always @(posedge i_clk or posedge i_reset)
 	if (i_reset)
 	begin
 		npending <= 0;
@@ -246,7 +245,6 @@ module wbm2axisp #(
 	default: begin end
 	endcase
 
-	initial	flushing = 0;
 	always @(posedge i_clk)
 	if (i_reset)
 		flushing <= 0;
@@ -304,8 +302,6 @@ module wbm2axisp #(
 	// awvalid, wvalid
 	// {{{
 	// Send write transactions
-	initial	o_axi_awvalid = 0;
-	initial	o_axi_wvalid = 0;
 	always @(posedge i_clk)
 	if (i_reset)
 	begin
@@ -370,7 +366,6 @@ module wbm2axisp #(
 
 	// arvalid
 	// {{{
-	initial	o_axi_arvalid = 0;
 	always @(posedge i_clk)
 	if (i_reset)
 		o_axi_arvalid <= 0;
@@ -445,7 +440,6 @@ module wbm2axisp #(
 		reg	[LGFIFO:0]	wr_addr, rd_addr;
 		wire	[C_AXI_DATA_WIDTH-1:0]	return_data;
 
-		initial	o_wb_ack = 0;
 		always @(posedge i_clk)
 		if (i_reset || !i_wb_cyc || flushing)
 			o_wb_ack <= 0;
@@ -453,7 +447,6 @@ module wbm2axisp #(
 			o_wb_ack <= ((i_axi_rvalid && !i_axi_rresp[1])
 				||(i_axi_bvalid && !i_axi_bresp[1]));
 
-		initial	o_wb_err = 0;
 		always @(posedge i_clk)
 		if (i_reset || !i_wb_cyc || flushing)
 			o_wb_err <= 0;
@@ -462,7 +455,6 @@ module wbm2axisp #(
 				||(i_axi_bvalid && i_axi_bresp[1]));
 
 
-		initial	wr_addr = 0;
 		always @(posedge i_clk)
 		if (i_reset)
 			wr_addr <= 0;
@@ -473,7 +465,6 @@ module wbm2axisp #(
 		if (m_valid && m_ready)
 			addr_fifo[wr_addr[LGFIFO-1:0]] <= m_addr[SUBW-1:0];
 
-		initial	rd_addr = 0;
 		always @(posedge i_clk)
 		if (i_reset)
 			rd_addr <= 0;
@@ -829,7 +820,6 @@ module wbm2axisp #(
 
 	// f_data
 	// {{{
-	initial	f_data = 0;
 	always @(posedge i_clk)
 	if (o_axi_wvalid && i_axi_wready && o_axi_awaddr == f_const_addr)
 	begin
@@ -980,14 +970,12 @@ module wbm2axisp #(
 				cvr_nreads, cvr_nwrites;
 	reg			cvr_flushed, cvr_read2write, cvr_write2read;
 
-	initial	r_hit_reads = 0;
 	always @(posedge i_clk)
 	if (i_reset)
 		r_hit_writes <= 0;
 	else if (f_axi_awr_nbursts > 3)
 		r_hit_writes <= 1;
 
-	initial	r_hit_reads = 0;
 	always @(posedge i_clk)
 	if (i_reset)
 		r_hit_reads <= 0;
@@ -1019,7 +1007,6 @@ module wbm2axisp #(
 			check_fault = 1;
 	end
 
-	initial	r_check_fault = 0;
 	always @(posedge i_clk)
 	if (i_reset)
 		r_check_fault <= 0;
@@ -1038,7 +1025,6 @@ module wbm2axisp #(
 	// ...
 	//
 
-	initial	cvr_flushed = 1'b0;
 	always @(posedge i_clk)
 	if (i_reset)
 		cvr_flushed <= 1'b0;
@@ -1059,14 +1045,12 @@ module wbm2axisp #(
 	// dropping i_wb_cyc.  Let's just make certain here, that if we do so,
 	// we don't drop it until after all of the returns come back.
 	//
-	initial	cvr_read2write = 0;
 	always @(posedge i_clk)
 	if (i_reset || (!i_wb_cyc && f_wb_nreqs != f_wb_nacks))
 		cvr_read2write <= 0;
 	else if (!direction && !empty && m_we)
 		cvr_read2write <= 1;
 
-	initial	cvr_write2read = 0;
 	always @(posedge i_clk)
 	if (i_reset || (!i_wb_cyc && f_wb_nreqs != f_wb_nacks))
 		cvr_write2read <= 0;
@@ -1081,7 +1065,6 @@ module wbm2axisp #(
 
 	reg	[2:0]	cvr_ack_after_abort;
 
-	initial	cvr_ack_after_abort = 0;
 	always @(posedge i_clk)
 	if (i_reset)
 		cvr_ack_after_abort <= 0;
@@ -1103,14 +1086,12 @@ module wbm2axisp #(
 	always @(*)
 		cover(!i_wb_cyc && &cvr_ack_after_abort[2:0]);
 
-	initial	cvr_nwrites = 0;
 	always @(posedge i_clk)
 	if (i_reset || flushing || !i_wb_cyc || !i_wb_we || o_wb_err)
 		cvr_nwrites <= 0;
 	else if (i_axi_bvalid && o_axi_bready)
 		cvr_nwrites <= cvr_nwrites + 1;
 
-	initial	cvr_nreads = 0;
 	always @(posedge i_clk)
 	if (i_reset || flushing || !i_wb_cyc || i_wb_we || o_wb_err)
 		cvr_nreads <= 0;
