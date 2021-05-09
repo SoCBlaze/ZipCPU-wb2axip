@@ -222,7 +222,7 @@ module wbm2axisp #(
 	else if (empty)
 		direction <= m_we;
 
-	always @(posedge i_clk or posedge i_reset)
+	always @(posedge i_clk)
 	if (i_reset)
 	begin
 		npending <= 0;
